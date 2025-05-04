@@ -3,7 +3,14 @@ import { createClient } from "@supabase/supabase-js"
 const supabaseUrl = "https://rfbxdvwqgyhsyuamqcbl.supabase.co"
 const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmYnhkdndxZ3loc3l1YW1xY2JsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MzM5NTIwMSwiZXhwIjoyMDU4OTcxMjAxfQ.9URdxFPYckfvxv3J5aS8CVy4w-QLevArtpnpgtgVQyI"
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    storageKey: "supabase-auth",
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+  },
+})
 
 export type Tables = {
   exam_users: {

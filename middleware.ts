@@ -10,16 +10,18 @@ export async function middleware(req: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession()
 
-  // Check auth condition
-  if (!session) {
-    // If the user is not signed in and trying to access a protected route
-    const isProtectedRoute = req.nextUrl.pathname.startsWith("/student") || req.nextUrl.pathname.startsWith("/admin")
 
-    if (isProtectedRoute) {
-      const redirectUrl = new URL("/", req.url)
-      return NextResponse.redirect(redirectUrl)
-    }
-  }
+  console.log(session)
+  // Check auth condition
+  // if (!session) {
+  //   // If the user is not signed in and trying to access a protected route
+  //   const isProtectedRoute = req.nextUrl.pathname.startsWith("/student") || req.nextUrl.pathname.startsWith("/admin")
+
+  //   if (isProtectedRoute) {
+  //     const redirectUrl = new URL("/", req.url)
+  //     return NextResponse.redirect(redirectUrl)
+  //   }
+  // }
 
   // If user is signed in, check user type for proper authorization
   if (session) {
