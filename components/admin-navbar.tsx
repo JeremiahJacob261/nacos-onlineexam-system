@@ -76,14 +76,6 @@ export function AdminNavbar() {
                   <BarChart3 className="h-5 w-5" />
                   Reports
                 </Link>
-                <Link
-                  href="/admin/profile"
-                  className="flex items-center gap-2 text-lg font-medium"
-                  onClick={() => setOpen(false)}
-                >
-                  <User className="h-5 w-5" />
-                  Profile
-                </Link>
                 <Button variant="ghost" className="justify-start px-2" onClick={handleLogout}>
                   Logout
                 </Button>
@@ -112,16 +104,7 @@ export function AdminNavbar() {
                 <span className="text-sm font-medium leading-none">{userProfile?.name}</span>
                 <span className="text-xs leading-none text-muted-foreground">{userProfile?.email}</span>
               </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => router.push("/admin/profile")}>
-              <User className="mr-2 h-4 w-4" />
-              <span>Profile</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => router.push("/admin/settings")}>
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Settings</span>
-            </DropdownMenuItem>
+            </DropdownMenuLabel>  
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />

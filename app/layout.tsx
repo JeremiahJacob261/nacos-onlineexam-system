@@ -23,6 +23,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="apple-touch-icon" href="/nacos.png" />
+        <link rel="icon" href="/favicon.ico" />
+        <link rel="manifest" href="/site.webmanifest" />
+        <meta name="theme-color" content="#000000" />
+        <meta name="description" content="Online Computer-Based Examination Platform" />
+        <meta name="keywords" content="Nacos, CBT, Online Exam, Computer-Based Test" />
+        <meta name="author" content="Nacos Team" />
+        <meta name="robots" content="index, follow" />
+      </head>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AuthProvider>{children}</AuthProvider>

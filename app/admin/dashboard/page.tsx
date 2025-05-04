@@ -327,12 +327,7 @@ export default function AdminDashboard() {
               <PlusCircle className="mr-2 h-4 w-4" />
               Create Exam
             </Button>
-            <Button variant="outline" asChild>
-              <Link href="/admin/students">
-                <Users className="mr-2 h-4 w-4" />
-                Manage Students
-              </Link>
-            </Button>
+            
           </div>
         </div>
 
