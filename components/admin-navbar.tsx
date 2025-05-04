@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -46,6 +47,10 @@ export function AdminNavbar() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-[240px] sm:w-[300px]">
+              <div className="flex items-center gap-2 mb-8">
+                <Image src="/nacos.png" alt="NACOS Logo" width={40} height={40} />
+                <span className="font-bold text-nacos-green">NACOS CBT</span>
+              </div>
               <nav className="flex flex-col gap-4 mt-8">
                 <Link
                   href="/admin/dashboard"
@@ -86,16 +91,18 @@ export function AdminNavbar() {
             </SheetContent>
           </Sheet>
           <Link href="/admin/dashboard" className="hidden items-center space-x-2 md:flex">
-            <BookOpen className="h-5 w-5" />
-            <span className="font-bold">Dashboard</span>
+            <Image src="/nacos.png" alt="NACOS Logo" width={32} height={32} />
+            <span className="font-bold text-nacos-green">NACOS CBT</span>
           </Link>
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-8 w-8 rounded-full">
               <Avatar className="h-8 w-8">
-                <AvatarImage src={userProfile?.imageUrl} alt={userProfile?.name} />
-                <AvatarFallback>{getInitials(userProfile?.name || "Guest")}</AvatarFallback>
+                <AvatarImage src={userProfile?.imageUrl || "/placeholder.svg"} alt={userProfile?.name} />
+                <AvatarFallback className="bg-nacos-green text-white">
+                  {getInitials(userProfile?.name || "Guest")}
+                </AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>

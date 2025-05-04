@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -54,6 +55,7 @@ export default function StudentRegister() {
 
       if (error) {
         setError(error.message)
+        setIsLoading(false)
         return
       }
 
@@ -62,7 +64,6 @@ export default function StudentRegister() {
     } catch (err) {
       setError("An error occurred during registration")
       console.error(err)
-    } finally {
       setIsLoading(false)
     }
   }
@@ -70,10 +71,13 @@ export default function StudentRegister() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4">
       <div className="w-full max-w-md">
-        <Card>
-          <CardHeader>
-            <CardTitle>Student Registration</CardTitle>
-            <CardDescription>Create an account to access the CBT system</CardDescription>
+      <Card>
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <Image src="/nacos.png" alt="NACOS Logo" width={80} height={80} priority />
+            </div>
+            <CardTitle className="text-nacos-green">Admin Login</CardTitle>
+            <CardDescription>Enter your email and password to access the admin dashboard</CardDescription>
           </CardHeader>
           <CardContent>
             {error && (
@@ -84,34 +88,12 @@ export default function StudentRegister() {
             )}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
-                <Input
-                  id="fullName"
-                  name="fullName"
-                  placeholder="Enter your full name"
-                  value={formData.fullName}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="studentId">Student ID</Label>
-                <Input
-                  id="studentId"
-                  name="studentId"
-                  placeholder="Enter your student ID"
-                  value={formData.studentId}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   name="email"
                   type="email"
-                  placeholder="Enter your email"
+                  placeholder="admin@example.com"
                   value={formData.email}
                   onChange={handleChange}
                   required
@@ -123,42 +105,27 @@ export default function StudentRegister() {
                   id="password"
                   name="password"
                   type="password"
-                  placeholder="Create a password"
+                  placeholder="Enter your password"
                   value={formData.password}
                   onChange={handleChange}
                   required
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <Input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  placeholder="Confirm your password"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button type="submit" className="w-full bg-nacos-green hover:bg-nacos-dark" disabled={isLoading}>
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Registering...
+                    Logging in...
                   </>
                 ) : (
-                  "Register"
+                  "Login"
                 )}
               </Button>
             </form>
           </CardContent>
           <CardFooter className="flex justify-between">
-            <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
+            <Link href="/" className="text-sm text-gray-500 hover:text-nacos-green">
               Back to home
-            </Link>
-            <Link href="/auth/student" className="text-sm text-gray-500 hover:text-gray-700">
-              Already have an account? Login
             </Link>
           </CardFooter>
         </Card>

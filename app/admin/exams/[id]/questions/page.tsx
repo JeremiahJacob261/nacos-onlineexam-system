@@ -393,7 +393,7 @@ export default function QuestionsPage({ params }: { params: { id: string } }) {
                             <div className="bg-gray-200 text-gray-700 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0">
                               {option.id.toUpperCase()}
                             </div>
-                            <span>{option.text}</span>
+                            <span className="text-green-500">{option.text}</span>
                             {option.id === question.correctAnswer && (
                               <span className="ml-auto text-green-600 text-sm font-medium">Correct</span>
                             )}

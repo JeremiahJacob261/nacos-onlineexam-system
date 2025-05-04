@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -7,8 +8,11 @@ export default function Home() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900">CBT System</h1>
-          <p className="mt-2 text-gray-600">Online Computer-Based Testing Platform</p>
+          <div className="flex justify-center mb-4">
+            <Image src="/nacos.png" alt="NACOS Logo" width={120} height={120} priority />
+          </div>
+          <h1 className="text-4xl font-bold tracking-tight text-nacos-green">NACOS CBT System</h1>
+          <p className="mt-2 text-gray-600">Nigerian Association of Computing Students Testing Platform</p>
         </div>
 
         <div className="space-y-4">
@@ -18,10 +22,14 @@ export default function Home() {
               <CardDescription>Log in based on your role in the system</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button asChild className="w-full">
+              <Button asChild className="w-full bg-nacos-green hover:bg-nacos-dark">
                 <Link href="/auth/student">Student Login</Link>
               </Button>
-              <Button asChild variant="outline" className="w-full">
+              <Button
+                asChild
+                variant="outline"
+                className="w-full border-nacos-green text-nacos-green hover:bg-nacos-light/10"
+              >
                 <Link href="/auth/admin">Admin Login</Link>
               </Button>
             </CardContent>

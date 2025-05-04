@@ -8,9 +8,12 @@ import { AuthProvider } from "@/lib/auth-context"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "CBT System",
-  description: "Online Computer-Based Testing Platform",
-    generator: 'v0.dev'
+  title: "Nacos EXam System",
+  description: "Online Computer-Based Examination Platform",
+    generator: 'computer science',
+    icons: {
+      icon: "/favicon.ico",
+    },
 }
 
 export default function RootLayout({
