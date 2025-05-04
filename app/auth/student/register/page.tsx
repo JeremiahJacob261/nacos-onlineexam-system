@@ -71,13 +71,13 @@ export default function StudentRegister() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4">
       <div className="w-full max-w-md">
-      <Card>
+        <Card>
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
               <Image src="/nacos.png" alt="NACOS Logo" width={80} height={80} priority />
             </div>
-            <CardTitle className="text-nacos-green">Admin Login</CardTitle>
-            <CardDescription>Enter your email and password to access the admin dashboard</CardDescription>
+            <CardTitle className="text-nacos-green">Student Registration</CardTitle>
+            <CardDescription>Create an account to access the CBT system</CardDescription>
           </CardHeader>
           <CardContent>
             {error && (
@@ -88,12 +88,34 @@ export default function StudentRegister() {
             )}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
+                <Label htmlFor="fullName">Full Name</Label>
+                <Input
+                  id="fullName"
+                  name="fullName"
+                  placeholder="Enter your full name"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="studentId">Student ID</Label>
+                <Input
+                  id="studentId"
+                  name="studentId"
+                  placeholder="Enter your student ID"
+                  value={formData.studentId}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   name="email"
                   type="email"
-                  placeholder="admin@example.com"
+                  placeholder="Enter your email"
                   value={formData.email}
                   onChange={handleChange}
                   required
@@ -105,8 +127,20 @@ export default function StudentRegister() {
                   id="password"
                   name="password"
                   type="password"
-                  placeholder="Enter your password"
+                  placeholder="Create a password"
                   value={formData.password}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  placeholder="Confirm your password"
+                  value={formData.confirmPassword}
                   onChange={handleChange}
                   required
                 />
@@ -115,10 +149,10 @@ export default function StudentRegister() {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Logging in...
+                    Registering...
                   </>
                 ) : (
-                  "Login"
+                  "Register"
                 )}
               </Button>
             </form>
@@ -126,6 +160,9 @@ export default function StudentRegister() {
           <CardFooter className="flex justify-between">
             <Link href="/" className="text-sm text-gray-500 hover:text-nacos-green">
               Back to home
+            </Link>
+            <Link href="/auth/student" className="text-sm text-nacos-green hover:text-nacos-dark">
+              Already have an account? Login
             </Link>
           </CardFooter>
         </Card>
