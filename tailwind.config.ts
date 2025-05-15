@@ -20,8 +20,8 @@ const config = {
     },
     extend: {
       colors: {
-        nacos: {
-          green: "#008f39", // NACOS green color
+        fuoye: {
+          green: "#008f39", // fuoye green color
           light: "#4cb97a",
           dark: "#006d2c",
         },

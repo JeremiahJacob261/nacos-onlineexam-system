@@ -48,8 +48,8 @@ export function StudentNavbar() {
             </SheetTrigger>
             <SheetContent side="left" className="w-[240px] sm:w-[300px]">
               <div className="flex items-center gap-2 mb-8">
-                <Image src="/nacos.png" alt="NACOS Logo" width={40} height={40} />
-                <span className="font-bold text-nacos-green">NACOS CBT</span>
+                <Image src="/fuoye.png" alt="fuoye Logo" width={40} height={40} />
+                <span className="font-bold text-fuoye-green">fuoye CBT</span>
               </div>
               <nav className="flex flex-col gap-4">
                 <Link
@@ -77,16 +77,16 @@ export function StudentNavbar() {
           </Sheet>
 
           <Link href="/student/dashboard" className="flex items-center gap-2">
-            <Image src="/nacos.png" alt="NACOS Logo" width={32} height={32} className="hidden sm:block" />
-            <span className="font-bold text-nacos-green text-xl hidden sm:inline-block">NACOS CBT</span>
+            <Image src="/fuoye.png" alt="fuoye Logo" width={32} height={32} className="hidden sm:block" />
+            <span className="font-bold text-fuoye-green text-xl hidden sm:inline-block">fuoye CBT</span>
           </Link>
         </div>
 
         <nav className="hidden md:flex items-center gap-6">
-          <Link href="/student/dashboard" className="text-sm font-medium transition-colors hover:text-nacos-green">
+          <Link href="/student/dashboard" className="text-sm font-medium transition-colors hover:text-fuoye-green">
             Dashboard
           </Link>
-          <Link href="/student/profile" className="text-sm font-medium transition-colors hover:text-nacos-green">
+          <Link href="/student/profile" className="text-sm font-medium transition-colors hover:text-fuoye-green">
             Profile
           </Link>
         </nav>
@@ -97,7 +97,7 @@ export function StudentNavbar() {
               <Button variant="ghost" size="icon" className="rounded-full">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src="/placeholder-user.jpg" alt="Profile" />
-                  <AvatarFallback className="bg-nacos-green text-white">
+                  <AvatarFallback className="bg-fuoye-green text-white">
                     {userProfile?.full_name ? getInitials(userProfile.full_name) : "ST"}
                   </AvatarFallback>
                 </Avatar>

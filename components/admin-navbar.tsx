@@ -48,8 +48,8 @@ export function AdminNavbar() {
             </SheetTrigger>
             <SheetContent side="left" className="w-[240px] sm:w-[300px]">
               <div className="flex items-center gap-2 mb-8">
-                <Image src="/nacos.png" alt="NACOS Logo" width={40} height={40} />
-                <span className="font-bold text-nacos-green">NACOS CBT</span>
+                <Image src="/fuoye.png" alt="fuoye Logo" width={40} height={40} />
+                <span className="font-bold text-fuoye-green">fuoye CBT</span>
               </div>
               <nav className="flex flex-col gap-4 mt-8">
                 <Link
@@ -83,8 +83,8 @@ export function AdminNavbar() {
             </SheetContent>
           </Sheet>
           <Link href="/admin/dashboard" className="hidden items-center space-x-2 md:flex">
-            <Image src="/nacos.png" alt="NACOS Logo" width={32} height={32} />
-            <span className="font-bold text-nacos-green">NACOS CBT</span>
+            <Image src="/fuoye.png" alt="fuoye Logo" width={32} height={32} />
+            <span className="font-bold text-fuoye-green">fuoye CBT</span>
           </Link>
         </div>
         <DropdownMenu>
@@ -92,7 +92,7 @@ export function AdminNavbar() {
             <Button variant="ghost" className="relative h-8 w-8 rounded-full">
               <Avatar className="h-8 w-8">
                 <AvatarImage src={userProfile?.imageUrl || "/placeholder.svg"} alt={userProfile?.name} />
-                <AvatarFallback className="bg-nacos-green text-white">
+                <AvatarFallback className="bg-fuoye-green text-white">
                   {getInitials(userProfile?.name || "Guest")}
                 </AvatarFallback>
               </Avatar>

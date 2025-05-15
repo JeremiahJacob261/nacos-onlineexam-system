@@ -9,9 +9,9 @@ export default function Home() {
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
           <div className="flex justify-center mb-4">
-            <Image src="/nacos.png" alt="NACOS Logo" width={120} height={120} priority />
+            <Image src="/fuoye.png" alt="fuoye Logo" width={120} height={120} priority />
           </div>
-          <h1 className="text-4xl font-bold tracking-tight text-nacos-green">NACOS CBT System</h1>
+          <h1 className="text-4xl font-bold tracking-tight text-fuoye-green">fuoye CBT System</h1>
           <p className="mt-2 text-gray-600">Nigerian Association of Computing Students Testing Platform</p>
         </div>
 
@@ -22,13 +22,13 @@ export default function Home() {
               <CardDescription>Log in based on your role in the system</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button asChild className="w-full bg-nacos-green hover:bg-nacos-dark">
+              <Button asChild className="w-full bg-fuoye-green hover:bg-fuoye-dark">
                 <Link href="/auth/student">Student Login</Link>
               </Button>
               <Button
                 asChild
                 variant="outline"
-                className="w-full border-nacos-green text-nacos-green hover:bg-nacos-light/10"
+                className="w-full border-fuoye-green text-fuoye-green hover:bg-fuoye-light/10"
               >
                 <Link href="/auth/admin">Admin Login</Link>
               </Button>

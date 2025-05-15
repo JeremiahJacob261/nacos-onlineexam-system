@@ -74,9 +74,9 @@ export default function StudentRegister() {
         <Card>
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
-              <Image src="/nacos.png" alt="NACOS Logo" width={80} height={80} priority />
+              <Image src="/fuoye.png" alt="fuoye Logo" width={80} height={80} priority />
             </div>
-            <CardTitle className="text-nacos-green">Student Registration</CardTitle>
+            <CardTitle className="text-fuoye-green">Student Registration</CardTitle>
             <CardDescription>Create an account to access the CBT system</CardDescription>
           </CardHeader>
           <CardContent>
@@ -145,7 +145,7 @@ export default function StudentRegister() {
                   required
                 />
               </div>
-              <Button type="submit" className="w-full bg-nacos-green hover:bg-nacos-dark" disabled={isLoading}>
+              <Button type="submit" className="w-full bg-fuoye-green hover:bg-fuoye-dark" disabled={isLoading}>
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -158,10 +158,10 @@ export default function StudentRegister() {
             </form>
           </CardContent>
           <CardFooter className="flex justify-between">
-            <Link href="/" className="text-sm text-gray-500 hover:text-nacos-green">
+            <Link href="/" className="text-sm text-gray-500 hover:text-fuoye-green">
               Back to home
             </Link>
-            <Link href="/auth/student" className="text-sm text-nacos-green hover:text-nacos-dark">
+            <Link href="/auth/student" className="text-sm text-fuoye-green hover:text-fuoye-dark">
               Already have an account? Login
             </Link>
           </CardFooter>
