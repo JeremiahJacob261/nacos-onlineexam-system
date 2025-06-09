@@ -17,11 +17,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Clock, ArrowLeft, ArrowRight, AlertTriangle, Loader2 } from "lucide-react"
+import { Clock, ArrowLeft, ArrowRight, AlertTriangle, Loader2, Shield, Eye, EyeOff } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/lib/auth-context"
 import { StudentNavbar } from "@/components/student-navbar"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useExamSecurity } from "@/hooks/use-exam-security"
 import Link from "next/link"
 
 interface Question {
@@ -49,21 +50,147 @@ export default function ExamPage({ params }: { params: { id: string } }) {
   const [examData, setExamData] = useState<ExamData | null>(null)
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string>>({})
-  const [timeLeft, setTimeLeft] = useState(0)
-  const [isFullScreen, setIsFullScreen] = useState(false)
-  const [showSubmitDialog, setShowSubmitDialog] = useState(false)
-  const [showTimeWarning, setShowTimeWarning] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState("")
   const [attemptId, setAttemptId] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Format time as MM:SS
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
+  // Security and warning states
+  const [showSubmitDialog, setShowSubmitDialog] = useState(false)
+  const [showSecurityWarning, setShowSecurityWarning] = useState(false)
+  const [showTimeWarning, setShowTimeWarning] = useState(false)
+  const [showViolationWarning, setShowViolationWarning] = useState(false)
+  const [examStarted, setExamStarted] = useState(false)
+  const [securityViolations, setSecurityViolations] = useState(0)
+
+  // Handle security violations
+  const handleTabSwitch = useCallback(async () => {
+    if (!examStarted || !attemptId) return
+
+    const newViolationCount = securityViolations + 1
+    setSecurityViolations(newViolationCount)
+
+    // Log the violation
+    try {
+      await supabase.from("exam_violations").insert({
+        attempt_id: attemptId,
+        violation_type: "tab_switch",
+        violation_count: newViolationCount,
+        timestamp: new Date().toISOString(),
+      })
+    } catch (error) {
+      console.error("Error logging violation:", error)
+    }
+
+    if (newViolationCount === 1) {
+      setShowViolationWarning(true)
+    } else if (newViolationCount >= 2) {
+      // Terminate exam after 2 violations
+      await terminateExam("security_violation")
+    }
+  }, [examStarted, attemptId, securityViolations])
+
+  const handleTimeWarning = useCallback(() => {
+    setShowTimeWarning(true)
+  }, [])
+
+  const handleTimeUp = useCallback(async () => {
+    await terminateExam("time_up")
+  }, [])
+
+  // Use exam security hook
+  const { isVisible, timeLeft, violations, enterFullscreen, exitFullscreen, formatTime } = useExamSecurity({
+    onTabSwitch: handleTabSwitch,
+    onTimeWarning: handleTimeWarning,
+    onTimeUp: handleTimeUp,
+    examDuration: examData?.duration ? examData.duration * 60 : 0,
+    warningTime: 300, // 5 minutes
+  })
+
+  // Terminate exam function
+  const terminateExam = async (reason: string) => {
+    if (!attemptId) return
+
+    setIsSubmitting(true)
+    try {
+      // Update attempt status
+      await supabase
+        .from("exam_attempts")
+        .update({
+          status: reason === "time_up" ? "timed_out" : "terminated",
+          end_time: new Date().toISOString(),
+          termination_reason: reason,
+        })
+        .eq("id", attemptId)
+
+      // Calculate and save results with current answers
+      await calculateAndSaveResults()
+
+      // Exit fullscreen
+      exitFullscreen()
+
+      // Redirect to results
+      router.push(`/student/results/${attemptId}?terminated=${reason}`)
+    } catch (error) {
+      console.error("Error terminating exam:", error)
+    }
+  }
+
+  // Calculate and save results
+  const calculateAndSaveResults = async () => {
+    if (!attemptId || !examData) return
+
+    try {
+      // Get all questions and correct answers
+      const { data: questionsWithAnswers, error: questionsError } = await supabase
+        .from("exam_questions")
+        .select(`
+          id,
+          exam_options (id, option_label, is_correct)
+        `)
+        .eq("exam_id", examData.id)
+
+      if (questionsError) throw questionsError
+
+      // Get student answers
+      const { data: studentAnswers, error: answersError } = await supabase
+        .from("exam_answers")
+        .select("question_id, selected_option_id")
+        .eq("attempt_id", attemptId)
+
+      if (answersError) throw answersError
+
+      // Calculate score
+      let correctAnswers = 0
+      const totalQuestions = questionsWithAnswers.length
+
+      studentAnswers.forEach((answer) => {
+        const question = questionsWithAnswers.find((q) => q.id === answer.question_id)
+        if (question) {
+          const correctOption = question.exam_options.find((o) => o.is_correct)
+          if (correctOption && correctOption.id === answer.selected_option_id) {
+            correctAnswers++
+          }
+        }
+      })
+
+      const score = Math.round((correctAnswers / totalQuestions) * 100)
+      const passed = score >= examData.passing_score
+
+      // Save results
+      await supabase.from("exam_results").insert({
+        attempt_id: attemptId,
+        user_id: userProfile?.id,
+        exam_id: examData.id,
+        score,
+        total_questions: totalQuestions,
+        correct_answers: correctAnswers,
+        passed,
+      })
+    } catch (error) {
+      console.error("Error calculating results:", error)
+    }
   }
 
   // Fetch exam data
@@ -90,9 +217,7 @@ export default function ExamPage({ params }: { params: { id: string } }) {
           .eq("exam_id", params.id)
           .order("question_order", { ascending: true })
 
-        if (questionsError) {
-          throw questionsError
-        }
+        if (questionsError) throw questionsError
 
         // Fetch options for all questions
         const questionIds = questionsData.map((q) => q.id)
@@ -101,9 +226,7 @@ export default function ExamPage({ params }: { params: { id: string } }) {
           .select("id, question_id, option_text, option_label")
           .in("question_id", questionIds)
 
-        if (optionsError) {
-          throw optionsError
-        }
+        if (optionsError) throw optionsError
 
         // Format questions with their options
         const questions = questionsData.map((question) => {
@@ -122,7 +245,6 @@ export default function ExamPage({ params }: { params: { id: string } }) {
           }
         })
 
-        // Set exam data
         setExamData({
           id: examData.id,
           title: examData.title,
@@ -133,10 +255,7 @@ export default function ExamPage({ params }: { params: { id: string } }) {
           questions,
         })
 
-        // Set timer
-        setTimeLeft(examData.duration * 60)
-
-        // Check if user already has an attempt for this exam
+        // Check for existing attempt
         await checkExistingAttempt(examData.id)
       } catch (error: any) {
         console.error("Error fetching exam data:", error)
@@ -151,10 +270,9 @@ export default function ExamPage({ params }: { params: { id: string } }) {
     }
   }, [params.id, user])
 
-  // Check if user already has an attempt
+  // Check existing attempt
   const checkExistingAttempt = async (examId: string) => {
     try {
-      // Check for an existing in-progress attempt
       const { data: attemptData, error: attemptError } = await supabase
         .from("exam_attempts")
         .select("id, start_time, status")
@@ -163,20 +281,11 @@ export default function ExamPage({ params }: { params: { id: string } }) {
         .eq("status", "in_progress")
         .maybeSingle()
 
-      if (attemptError) {
-        throw attemptError
-      }
+      if (attemptError) throw attemptError
 
       if (attemptData) {
-        // Existing attempt found
         setAttemptId(attemptData.id)
-
-        // Calculate remaining time
-        const startTime = new Date(attemptData.start_time)
-        const currentTime = new Date()
-        const elapsedSeconds = Math.floor((currentTime.getTime() - startTime.getTime()) / 1000)
-        const remainingSeconds = Math.max(0, examData!.duration * 60 - elapsedSeconds)
-        setTimeLeft(remainingSeconds)
+        setExamStarted(true)
 
         // Fetch existing answers
         const { data: answersData, error: answersError } = await supabase
@@ -184,14 +293,11 @@ export default function ExamPage({ params }: { params: { id: string } }) {
           .select("question_id, selected_option_id")
           .eq("attempt_id", attemptData.id)
 
-        if (answersError) {
-          throw answersError
-        }
+        if (answersError) throw answersError
 
         // Format answers
         const formattedAnswers: Record<string, string> = {}
         answersData.forEach((answer) => {
-          // Find the question and option
           const question = examData?.questions.find((q) => q.id === answer.question_id)
           if (question) {
             const option = question.options.find((o) => o.optionId === answer.selected_option_id)
@@ -202,22 +308,21 @@ export default function ExamPage({ params }: { params: { id: string } }) {
         })
 
         setAnswers(formattedAnswers)
-      } else {
-        // Create a new attempt
-        await createAttempt(examId)
       }
     } catch (error) {
       console.error("Error checking existing attempt:", error)
     }
   }
 
-  // Create a new attempt
-  const createAttempt = async (examId: string) => {
+  // Start exam
+  const startExam = async () => {
+    if (!examData) return
+
     try {
       const { data, error } = await supabase
         .from("exam_attempts")
         .insert({
-          exam_id: examId,
+          exam_id: examData.id,
           user_id: userProfile?.id,
           start_time: new Date().toISOString(),
           status: "in_progress",
@@ -225,31 +330,30 @@ export default function ExamPage({ params }: { params: { id: string } }) {
         .select()
         .single()
 
-      if (error) {
-        throw error
-      }
+      if (error) throw error
 
       setAttemptId(data.id)
+      setExamStarted(true)
+      enterFullscreen()
     } catch (error) {
-      console.error("Error creating attempt:", error)
+      console.error("Error starting exam:", error)
+      setError("Failed to start exam")
     }
   }
 
-  // Save answer to database
+  // Save answer
   const saveAnswer = useCallback(
     async (questionId: string, optionId: string) => {
       if (!attemptId) return
 
       setIsSaving(true)
       try {
-        // Find the selected option's ID
         const question = examData?.questions.find((q) => q.id === questionId)
         if (!question) return
 
         const option = question.options.find((o) => o.id === optionId)
         if (!option) return
 
-        // Check if answer already exists
         const { data: existingAnswer, error: checkError } = await supabase
           .from("exam_answers")
           .select("id")
@@ -257,34 +361,22 @@ export default function ExamPage({ params }: { params: { id: string } }) {
           .eq("question_id", questionId)
           .maybeSingle()
 
-        if (checkError) {
-          throw checkError
-        }
+        if (checkError) throw checkError
 
         if (existingAnswer) {
-          // Update existing answer
-          const { error: updateError } = await supabase
+          await supabase
             .from("exam_answers")
             .update({
               selected_option_id: option.optionId,
               updated_at: new Date().toISOString(),
             })
             .eq("id", existingAnswer.id)
-
-          if (updateError) {
-            throw updateError
-          }
         } else {
-          // Insert new answer
-          const { error: insertError } = await supabase.from("exam_answers").insert({
+          await supabase.from("exam_answers").insert({
             attempt_id: attemptId,
             question_id: questionId,
             selected_option_id: option.optionId,
           })
-
-          if (insertError) {
-            throw insertError
-          }
         }
       } catch (error) {
         console.error("Error saving answer:", error)
@@ -305,32 +397,29 @@ export default function ExamPage({ params }: { params: { id: string } }) {
       [questionId]: value,
     })
 
-    // Save answer to database
     saveAnswer(questionId, value)
   }
 
-  // Navigate to next question
+  // Navigation functions
   const nextQuestion = () => {
     if (examData && currentQuestion < examData.questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1)
     }
   }
 
-  // Navigate to previous question
   const prevQuestion = () => {
     if (currentQuestion > 0) {
       setCurrentQuestion(currentQuestion - 1)
     }
   }
 
-  // Handle exam submission
+  // Submit exam
   const handleSubmit = async () => {
     if (!attemptId || !examData) return
 
     setIsSubmitting(true)
     try {
-      // Update attempt status
-      const { error: attemptError } = await supabase
+      await supabase
         .from("exam_attempts")
         .update({
           status: "completed",
@@ -338,72 +427,8 @@ export default function ExamPage({ params }: { params: { id: string } }) {
         })
         .eq("id", attemptId)
 
-      if (attemptError) {
-        throw attemptError
-      }
-
-      // Calculate results
-      // 1. Get all questions and correct answers
-      const { data: questionsWithAnswers, error: questionsError } = await supabase
-        .from("exam_questions")
-        .select(
-          `
-          id,
-          exam_options (id, option_label, is_correct)
-        `,
-        )
-        .eq("exam_id", examData.id)
-
-      if (questionsError) {
-        throw questionsError
-      }
-
-      // 2. Get student answers
-      const { data: studentAnswers, error: answersError } = await supabase
-        .from("exam_answers")
-        .select("question_id, selected_option_id")
-        .eq("attempt_id", attemptId)
-
-      if (answersError) {
-        throw answersError
-      }
-
-      // 3. Calculate score
-      let correctAnswers = 0
-      const totalQuestions = questionsWithAnswers.length
-
-      studentAnswers.forEach((answer) => {
-        const question = questionsWithAnswers.find((q) => q.id === answer.question_id)
-        if (question) {
-          const correctOption = question.exam_options.find((o) => o.is_correct)
-          if (correctOption && correctOption.id === answer.selected_option_id) {
-            correctAnswers++
-          }
-        }
-      })
-
-      const score = Math.round((correctAnswers / totalQuestions) * 100)
-      const passed = score >= examData.passing_score
-
-      // 4. Save results
-      const { error: resultError } = await supabase.from("exam_results").insert({
-        attempt_id: attemptId,
-        user_id: userProfile?.id,
-        exam_id: examData.id,
-        score,
-        total_questions: totalQuestions,
-        correct_answers: correctAnswers,
-        passed,
-      })
-
-      if (resultError) {
-        throw resultError
-      }
-
-      // 5. Update analytics
-      await updateExamAnalytics(examData.id, score, timeLeft)
-
-      // Redirect to results page
+      await calculateAndSaveResults()
+      exitFullscreen()
       router.push(`/student/results/${attemptId}`)
     } catch (error) {
       console.error("Error submitting exam:", error)
@@ -412,152 +437,6 @@ export default function ExamPage({ params }: { params: { id: string } }) {
       setIsSubmitting(false)
     }
   }
-
-  // Update exam analytics
-  const updateExamAnalytics = async (examId: string, score: number, timeRemaining: number) => {
-    try {
-      // Check if analytics record exists
-      const { data: existingAnalytics, error: checkError } = await supabase
-        .from("exam_analytics")
-        .select("*")
-        .eq("exam_id", examId)
-        .maybeSingle()
-
-      if (checkError && checkError.code !== "PGRST116") {
-        throw checkError
-      }
-
-      const completionTime = examData!.duration * 60 - timeRemaining
-
-      if (existingAnalytics) {
-        // Update existing analytics
-        const newTotalAttempts = existingAnalytics.total_attempts + 1
-        const newTotalScore = existingAnalytics.avg_score * existingAnalytics.total_attempts + score
-        const newAvgScore = newTotalScore / newTotalAttempts
-        const newPassCount =
-          existingAnalytics.pass_rate * existingAnalytics.total_attempts * 0.01 +
-          (score >= examData!.passing_score ? 1 : 0)
-        const newPassRate = (newPassCount / newTotalAttempts) * 100
-
-        // Calculate new average completion time
-        let newAvgCompletionTime = existingAnalytics.avg_completion_time || 0
-        if (existingAnalytics.avg_completion_time) {
-          newAvgCompletionTime =
-            (existingAnalytics.avg_completion_time * existingAnalytics.total_attempts + completionTime) /
-            newTotalAttempts
-        } else {
-          newAvgCompletionTime = completionTime
-        }
-
-        await supabase
-          .from("exam_analytics")
-          .update({
-            total_attempts: newTotalAttempts,
-            avg_score: newAvgScore,
-            pass_rate: newPassRate,
-            avg_completion_time: newAvgCompletionTime,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", existingAnalytics.id)
-      } else {
-        // Create new analytics record
-        await supabase.from("exam_analytics").insert({
-          exam_id: examId,
-          total_attempts: 1,
-          avg_score: score,
-          pass_rate: score >= examData!.passing_score ? 100 : 0,
-          avg_completion_time: completionTime,
-        })
-      }
-    } catch (error) {
-      console.error("Error updating analytics:", error)
-    }
-  }
-
-  // Toggle fullscreen
-  const toggleFullScreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch((err) => {
-        console.error(`Error attempting to enable full-screen mode: ${err.message}`)
-      })
-      setIsFullScreen(true)
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen()
-        setIsFullScreen(false)
-      }
-    }
-  }
-
-  // Timer effect
-  useEffect(() => {
-    if (!attemptId || timeLeft <= 0) return
-
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 0) {
-          clearInterval(timer)
-          handleTimeUp()
-          return 0
-        }
-
-        // Show warning when 5 minutes left
-        if (prev === 300) {
-          setShowTimeWarning(true)
-        }
-
-        return prev - 1
-      })
-    }, 1000)
-
-    return () => clearInterval(timer)
-  }, [attemptId, timeLeft])
-
-  // Handle time up
-  const handleTimeUp = async () => {
-    if (!attemptId) return
-
-    try {
-      // Update attempt status
-      await supabase
-        .from("exam_attempts")
-        .update({
-          status: "timed_out",
-          end_time: new Date().toISOString(),
-        })
-        .eq("id", attemptId)
-
-      // Submit the exam with whatever answers were provided
-      handleSubmit()
-    } catch (error) {
-      console.error("Error handling time up:", error)
-    }
-  }
-
-  // Enter fullscreen on component mount
-  useEffect(() => {
-    if (examData) {
-      toggleFullScreen()
-
-      // Handle fullscreen change
-      const handleFullscreenChange = () => {
-        setIsFullScreen(!!document.fullscreenElement)
-      }
-
-      document.addEventListener("fullscreenchange", handleFullscreenChange)
-
-      return () => {
-        document.removeEventListener("fullscreenchange", handleFullscreenChange)
-        // Exit fullscreen when component unmounts
-        if (document.fullscreenElement) {
-          document.exitFullscreen()
-        }
-      }
-    }
-  }, [examData])
-
-  // Calculate progress percentage
-  const progressPercentage = examData ? (Object.keys(answers).length / examData.questions.length) * 100 : 0
 
   if (isLoading) {
     return (
@@ -602,11 +481,94 @@ export default function ExamPage({ params }: { params: { id: string } }) {
     )
   }
 
+  // Pre-exam instructions
+  if (!examStarted) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <StudentNavbar />
+        <div className="container mx-auto p-4 md:p-6 max-w-4xl">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl text-center text-nacos-green">{examData.title}</CardTitle>
+              <p className="text-center text-gray-600">{examData.code}</p>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="font-semibold mb-2">Exam Information</h3>
+                  <ul className="space-y-1 text-sm">
+                    <li>Duration: {examData.duration} minutes</li>
+                    <li>Questions: {examData.questions.length}</li>
+                    <li>Passing Score: {examData.passing_score}%</li>
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-2">Security Features</h3>
+                  <ul className="space-y-1 text-sm">
+                    <li className="flex items-center">
+                      <Shield className="h-4 w-4 mr-2 text-nacos-green" />
+                      Fullscreen mode required
+                    </li>
+                    <li className="flex items-center">
+                      <Eye className="h-4 w-4 mr-2 text-nacos-green" />
+                      Tab monitoring active
+                    </li>
+                    <li className="flex items-center">
+                      <Clock className="h-4 w-4 mr-2 text-nacos-green" />
+                      Auto-save enabled
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <Alert className="border-red-200 bg-red-50">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="text-red-800">
+                  <strong>Important Security Notice:</strong>
+                  <ul className="mt-2 space-y-1">
+                    <li>• Switching tabs or leaving the exam window will be detected</li>
+                    <li>• First violation will show a warning</li>
+                    <li>• Second violation will automatically terminate the exam</li>
+                    <li>• The exam must be completed in fullscreen mode</li>
+                    <li>• Right-click and keyboard shortcuts are disabled</li>
+                  </ul>
+                </AlertDescription>
+              </Alert>
+
+              {examData.description && (
+                <div>
+                  <h3 className="font-semibold mb-2">Instructions</h3>
+                  <p className="text-sm text-gray-600">{examData.description}</p>
+                </div>
+              )}
+            </CardContent>
+            <CardFooter className="flex justify-center">
+              <Button onClick={startExam} className="bg-nacos-green hover:bg-nacos-dark" size="lg">
+                Start Exam
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+      </div>
+    )
+  }
+
   const question = examData.questions[currentQuestion]
   const currentAnswer = question ? answers[question.id] : undefined
+  const progressPercentage = (Object.keys(answers).length / examData.questions.length) * 100
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Security indicator */}
+      {!isVisible && (
+        <div className="fixed top-0 left-0 right-0 bg-red-600 text-white text-center py-2 z-50">
+          <div className="flex items-center justify-center">
+            <EyeOff className="h-4 w-4 mr-2" />
+            SECURITY VIOLATION DETECTED - Return to exam immediately
+          </div>
+        </div>
+      )}
+
       {/* Exam Header */}
       <header className="bg-white border-b sticky top-0 z-10">
         <div className="container mx-auto p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -622,6 +584,13 @@ export default function ExamPage({ params }: { params: { id: string } }) {
                 {formatTime(timeLeft)}
               </span>
             </div>
+
+            {securityViolations > 0 && (
+              <div className="flex items-center text-red-600">
+                <AlertTriangle className="mr-1 h-4 w-4" />
+                <span className="text-sm">Violations: {securityViolations}</span>
+              </div>
+            )}
 
             <Button variant="outline" size="sm" onClick={() => setShowSubmitDialog(true)}>
               Submit Exam
@@ -656,12 +625,12 @@ export default function ExamPage({ params }: { params: { id: string } }) {
               {question.options.map((option) => (
                 <div
                   key={option.id}
-                  className={`flex items-center space-x-2 rounded-md border p-4 transition-colors ${
-                    currentAnswer === option.id ? "bg-gray-100 border-gray-300" : ""
+                  className={`flex items-center space-x-2 rounded-md border p-4 transition-colors cursor-pointer ${
+                    currentAnswer === option.id ? "bg-nacos-light/10 border-nacos-green" : "hover:bg-gray-50"
                   }`}
                   onClick={() => handleAnswerSelect(option.id)}
                 >
-                  <RadioGroupItem value={option.id} id={`option-${option.id}`} className="sr-only" />
+                  <RadioGroupItem value={option.id} id={`option-${option.id}`} />
                   <Label htmlFor={`option-${option.id}`} className="flex items-center cursor-pointer w-full">
                     <span className="bg-gray-200 text-gray-700 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">
                       {option.id.toUpperCase()}
@@ -748,12 +717,33 @@ export default function ExamPage({ params }: { params: { id: string } }) {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Security Violation Warning */}
+      <AlertDialog open={showViolationWarning} onOpenChange={setShowViolationWarning}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-red-600">Security Violation Detected</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have switched tabs or left the exam window. This is your first warning.
+              <div className="mt-2 p-3 bg-red-50 rounded-md">
+                <strong className="text-red-800">Important:</strong> Another violation will automatically terminate your
+                exam. Please remain focused on the exam window.
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction className="bg-red-600 hover:bg-red-700">I Understand</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Time Warning Dialog */}
       <AlertDialog open={showTimeWarning} onOpenChange={setShowTimeWarning}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Time Warning</AlertDialogTitle>
-            <AlertDialogDescription>You have 5 minutes remaining to complete the exam.</AlertDialogDescription>
+            <AlertDialogTitle className="text-amber-600">Time Warning</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have 5 minutes remaining to complete the exam. Please review your answers and submit when ready.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogAction>Continue</AlertDialogAction>
