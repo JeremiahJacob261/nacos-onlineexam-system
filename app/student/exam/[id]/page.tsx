@@ -29,6 +29,7 @@ interface Question {
   id: string
   text: string
   options: {
+    optionId: any
     id: string
     text: string
   }[]
