@@ -11,10 +11,10 @@ export default function Home() {
       <header className="bg-white border-b">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-center">
-            <Image src="/nacos.png" alt="NACOS Logo" width={60} height={60} priority />
+            <Image src="/nacos.png" alt="Online Logo" width={60} height={60} priority />
             <div className="ml-4 text-center">
-              <h1 className="text-3xl font-bold text-nacos-green">NACOS CBT System</h1>
-              <p className="text-gray-600">Nigerian Association of Computing Students Testing Platform</p>
+              <h1 className="text-3xl font-bold text-fuoye-green">Online CBT System</h1>
+              <p className="text-gray-400">Nigerian Association of Computing Students Testing Platform</p>
             </div>
           </div>
         </div>
@@ -24,8 +24,8 @@ export default function Home() {
       <main className="container mx-auto px-4 py-8">
         {/* Welcome Section */}
         <section className="text-center mb-12">
-          <h2 className="text-4xl font-bold mb-4">Welcome to NACOS CBT System</h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <h2 className="text-4xl font-bold mb-4">Welcome to Online CBT System</h2>
+          <p className="text-xl text-gray-400 max-w-3xl mx-auto">
             A comprehensive Computer-Based Testing platform designed specifically for the Nigerian Association of
             Computing Students. Experience secure, reliable, and efficient online examinations.
           </p>
@@ -35,11 +35,11 @@ export default function Home() {
         <section className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
           <Card>
             <CardHeader>
-              <Shield className="h-12 w-12 text-nacos-green mb-4" />
+              <Shield className="h-12 w-12 text-fuoye-green mb-4" />
               <CardTitle>Secure Testing Environment</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">
+              <p className="text-gray-400">
                 Advanced security features including tab monitoring, fullscreen mode, and automatic session management
                 to ensure exam integrity.
               </p>
@@ -48,11 +48,11 @@ export default function Home() {
 
           <Card>
             <CardHeader>
-              <Clock className="h-12 w-12 text-nacos-green mb-4" />
+              <Clock className="h-12 w-12 text-fuoye-green mb-4" />
               <CardTitle>Real-time Monitoring</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">
+              <p className="text-gray-400">
                 Live tracking of student progress, automatic time management, and instant notifications for
                 administrators during active examinations.
               </p>
@@ -61,11 +61,11 @@ export default function Home() {
 
           <Card>
             <CardHeader>
-              <FileText className="h-12 w-12 text-nacos-green mb-4" />
+              <FileText className="h-12 w-12 text-fuoye-green mb-4" />
               <CardTitle>Easy Question Management</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">
+              <p className="text-gray-400">
                 Intuitive interface for creating, editing, and organizing exam questions with support for multiple
                 choice formats and bulk CSV imports.
               </p>
@@ -74,11 +74,11 @@ export default function Home() {
 
           <Card>
             <CardHeader>
-              <BarChart3 className="h-12 w-12 text-nacos-green mb-4" />
+              <BarChart3 className="h-12 w-12 text-fuoye-green mb-4" />
               <CardTitle>Comprehensive Analytics</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">
+              <p className="text-gray-400">
                 Detailed performance reports, score distributions, and analytics to help educators understand student
                 performance and improve teaching methods.
               </p>
@@ -87,11 +87,11 @@ export default function Home() {
 
           <Card>
             <CardHeader>
-              <Users className="h-12 w-12 text-nacos-green mb-4" />
+              <Users className="h-12 w-12 text-fuoye-green mb-4" />
               <CardTitle>User Management</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">
+              <p className="text-gray-400">
                 Separate portals for students and administrators with role-based access control and comprehensive user
                 profile management.
               </p>
@@ -100,11 +100,11 @@ export default function Home() {
 
           <Card>
             <CardHeader>
-              <CheckCircle className="h-12 w-12 text-nacos-green mb-4" />
+              <CheckCircle className="h-12 w-12 text-fuoye-green mb-4" />
               <CardTitle>Instant Results</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">
+              <p className="text-gray-400">
                 Automatic grading and immediate result delivery with detailed answer reviews and performance feedback
                 for students.
               </p>
@@ -153,13 +153,13 @@ export default function Home() {
               <CardDescription className="text-center">Choose your role to continue</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button asChild className="w-full bg-nacos-green hover:bg-nacos-dark">
+              <Button asChild className="w-full bg-fuoye-green hover:bg-fuoye-dark">
                 <Link href="/auth/student">Student Portal</Link>
               </Button>
               <Button
                 asChild
                 variant="outline"
-                className="w-full border-nacos-green text-nacos-green hover:bg-nacos-light/10"
+                className="w-full border-fuoye-green text-fuoye-green hover:bg-fuoye-light/10"
               >
                 <Link href="/auth/admin">Administrator Portal</Link>
               </Button>
@@ -180,7 +180,7 @@ export default function Home() {
               <h3 className="text-lg font-semibold text-blue-800 mb-2">Need Technical Support?</h3>
               <p className="text-blue-700">
                 For technical assistance, account issues, or general inquiries, please contact your system administrator
-                or the NACOS technical support team.
+                or the Online technical support team.
               </p>
             </CardContent>
           </Card>
@@ -189,7 +189,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="bg-white border-t mt-16">
-        <div className="container mx-auto px-4 py-6 text-center text-gray-600">
+        <div className="container mx-auto px-4 py-6 text-center text-gray-400">
           <p>&copy; 2024 Nigerian Association of Computing Students. All rights reserved.</p>
         </div>
       </footer>

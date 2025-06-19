@@ -490,7 +490,7 @@ export default function ExamPage({ params }: { params: { id: string } }) {
         <div className="container mx-auto p-4 md:p-6 max-w-4xl">
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl text-center text-nacos-green">{examData.title}</CardTitle>
+              <CardTitle className="text-2xl text-center text-fuoye-green">{examData.title}</CardTitle>
               <p className="text-center text-gray-600">{examData.code}</p>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -507,15 +507,15 @@ export default function ExamPage({ params }: { params: { id: string } }) {
                   <h3 className="font-semibold mb-2">Security Features</h3>
                   <ul className="space-y-1 text-sm">
                     <li className="flex items-center">
-                      <Shield className="h-4 w-4 mr-2 text-nacos-green" />
+                      <Shield className="h-4 w-4 mr-2 text-fuoye-green" />
                       Fullscreen mode required
                     </li>
                     <li className="flex items-center">
-                      <Eye className="h-4 w-4 mr-2 text-nacos-green" />
+                      <Eye className="h-4 w-4 mr-2 text-fuoye-green" />
                       Tab monitoring active
                     </li>
                     <li className="flex items-center">
-                      <Clock className="h-4 w-4 mr-2 text-nacos-green" />
+                      <Clock className="h-4 w-4 mr-2 text-fuoye-green" />
                       Auto-save enabled
                     </li>
                   </ul>
@@ -544,7 +544,7 @@ export default function ExamPage({ params }: { params: { id: string } }) {
               )}
             </CardContent>
             <CardFooter className="flex justify-center">
-              <Button onClick={startExam} className="bg-nacos-green hover:bg-nacos-dark" size="lg">
+              <Button onClick={startExam} className="bg-fuoye-green hover:bg-fuoye-dark" size="lg">
                 Start Exam
               </Button>
             </CardFooter>
@@ -627,7 +627,7 @@ export default function ExamPage({ params }: { params: { id: string } }) {
                 <div
                   key={option.id}
                   className={`flex items-center space-x-2 rounded-md border p-4 transition-colors cursor-pointer ${
-                    currentAnswer === option.id ? "bg-nacos-light/10 border-nacos-green" : "hover:bg-gray-50"
+                    currentAnswer === option.id ? "bg-fuoye-light/10 border-fuoye-green" : "hover:bg-gray-50"
                   }`}
                   onClick={() => handleAnswerSelect(option.id)}
                 >
